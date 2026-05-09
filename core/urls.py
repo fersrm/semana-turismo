@@ -8,6 +8,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("", include("homeApp.urls")),
     path("", include("UsuarioApp.urls")),
+    path("mapa/", include("MapaApp.urls")),
 ]
 
 if settings.DEBUG:

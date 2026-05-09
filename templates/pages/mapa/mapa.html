@@ -1,0 +1,48 @@
+{% extends 'components/Layout/base_extendido.html' %}
+{% load static %}   
+
+{% block head_title %}
+  Mapa Regional
+{% endblock head_title %}
+
+{% block content_main %}
+
+    <div class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl p-10 m-auto">
+
+        <div class="flex items-center justify-between mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-700 text-center m-auto">
+                Mapa Territorial de Ñuble
+            </h1>
+        </div>
+
+        <p class="text-center text-gray-500 text-lg mb-10">
+            Selecciona la vista que deseas utilizar
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+            <a href="{% url 'MapaPanel' %}"
+                class="group bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl p-8 shadow-lg transition duration-300 flex flex-col items-center text-center">
+                <div class="text-5xl mb-4">📤</div>
+                <h2 class="text-2xl font-bold mb-2">Cargar / Actualizar datos</h2>
+                <p class="text-indigo-100">
+                    Sube el archivo Excel para actualizar el mapa territorial.
+                </p>
+            </a>
+
+            <a href="{% url 'MapaVista' %}" target="blank"
+                class="group bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl p-8 shadow-lg transition duration-300 flex flex-col items-center text-center">
+                <div class="text-5xl mb-4">🗺️</div>
+                <h2 class="text-2xl font-bold mb-2">Visualizar mapa</h2>
+                <p class="text-emerald-100">
+                    Abre la vista principal del mapa con actualización visual.
+                </p>
+            </a>
+
+        </div>
+
+        {% include 'components/mensajes.html' %} 
+
+    </div>
+
+{% endblock content_main %}

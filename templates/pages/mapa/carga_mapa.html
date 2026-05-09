@@ -1,0 +1,22 @@
+{% extends 'components/Layout/base_extendido.html' %}
+{% load static %}   
+
+{% load static %}   
+
+{% block head_title %}
+Mapa Regional
+{% endblock head_title %}
+
+{% block content_main %} 
+  {% include "pages/mapa/components/btn_carga.html" %}
+  {% include 'pages/mapa/secciones/mapa.html' %}
+  {% include 'components/mensajes.html' %}  
+  
+{% endblock content_main %}
+
+{% block javascript %}
+  <script defer src="{% static 'js/carga_documento.js' %}"></script>
+  <script defer src="{% static 'js/mapa.js' %}"></script>
+  <script defer src="{% static 'js/tabla.js' %}"></script>
+  <script defer src="{% static 'js/modal.js' %}"></script>
+{% endblock javascript %}

@@ -1,0 +1,26 @@
+{% extends 'components/Layout/base.html' %}
+{% load static %}   
+
+{% block head_title %}
+  Mapa Regional
+{% endblock head_title %}
+
+
+
+{% block content %}
+  <div class="pt-6">
+    {% include 'pages/mapa/secciones/mapa.html' %}
+  </div>
+{% endblock content %}
+
+{% block javascript %}
+  <script defer src="{% static 'js/carga_documento.js' %}"></script>
+  <script defer src="{% static 'js/mapa.js' %}"></script>
+  <script defer src="{% static 'js/tabla.js' %}"></script>
+
+  <script>
+    setTimeout(function() {
+      location.reload();
+    }, 300000); // 5 minutos
+  </script>
+{% endblock javascript %}
