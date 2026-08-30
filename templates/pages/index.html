@@ -4,10 +4,15 @@
 
 {% block content_main %} 
           
-  <div class="sm:h-dvh">
-      <h2 class=" text-zinc-400 text-center pb-3 text-2xl" >Grafico Ejemplo</h2>
-      <div class="w-full h-[600px]" id="chart_home">
+  <div class="mb-8">
+      <h2 class="pb-3 text-center text-2xl text-zinc-400">
+          Participantes registrados esta semana
+      </h2>
+
+      <div class="h-[360px] w-full" id="chart_home"></div>
   </div>
+
+{{ grafico_semana|json_script:"grafico-semana-data" }}
 
   <!-- Activity list -->
   <div class="border-t border-white/10 pt-11">

@@ -1,26 +1,51 @@
-from django.views.generic import FormView, TemplateView, View
-from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import MapaForm, ParticipanteManualForm
-from django.contrib import messages
-from django.urls import reverse_lazy
-from adapters.excel_adapter import ExcelAdapter
-from django.shortcuts import redirect
 from datetime import timedelta
-from django.http import JsonResponse
+
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
 from django.utils import timezone
-from .models import ParticipanteMapa
+from django.views.generic import FormView, TemplateView, View
+
+from adapters.excel_adapter import ExcelAdapter
+
+from .forms import MapaForm
+from .models import Evento, ParticipanteMapa
 
 
-class ParticipanteManualCreateView(LoginRequiredMixin, FormView):
-    form_class = ParticipanteManualForm
-    template_name = "pages/mapa/components/carga_manual.html"
+class MapaFormView(LoginRequiredMixin, FormView):
+    form_class = MapaForm
+    template_name = "pages/mapa/components/carga_excel.html"
     success_url = reverse_lazy("MapaPanel")
     login_url = reverse_lazy("account_login")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["evento_predeterminado"] = Evento.objects.order_by("-id").first()
+
+        return context
+
     def form_valid(self, form):
-        form.save()
-        messages.success(self.request, "Registro agregado correctamente.")
+        document = form.cleaned_data["document"]
+        evento = form.cleaned_data["evento"]
+
+        try:
+            adapter = ExcelAdapter()
+            total_registros = adapter.process_excel_file(document, evento)
+
+            messages.success(
+                self.request,
+                f"Archivo cargado con éxito. Se guardaron "
+                f"{total_registros} registros en «{evento.nombre}».",
+            )
+
+        except Exception as error:
+            form.add_error(None, f"Error al procesar el archivo: {error}")
+            return self.form_invalid(form)
+
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -31,67 +56,41 @@ class ParticipanteManualCreateView(LoginRequiredMixin, FormView):
         return redirect("MapaPanel")
 
 
-class MapaFormView(LoginRequiredMixin, FormView):
-    form_class = MapaForm
-    template_name = "pages/mapa/components/carga_excel.html"
-    success_url = reverse_lazy("MapaPanel")
-    login_url = reverse_lazy("account_login")
-
-    def form_valid(self, form):
-        document = form.cleaned_data["document"]
-
-        try:
-            adapter = ExcelAdapter()
-            total_registros = adapter.process_excel_file(document)
-
-            messages.success(
-                self.request,
-                f"Archivo cargado con éxito. Se guardaron {total_registros} registros.",
-            )
-
-        except Exception as e:
-            form.add_error(None, f"Error al procesar el archivo: {str(e)}")
-            return self.form_invalid(form)
-
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        for _, errors in form.errors.items():
-            for error in errors:
-                messages.error(self.request, f"{error}")
-
-        return redirect("MapaPanel")
-
-
-class MapaTemplaView(LoginRequiredMixin, TemplateView):
-    template_name = "pages/mapa/carga_mapa.html"
-    login_url = reverse_lazy("account_login")
-
-
-# Vista que entregue los datos al mapa según filtro
 class MapaDatosView(LoginRequiredMixin, View):
-
     login_url = reverse_lazy("account_login")
 
     def get(self, request, *args, **kwargs):
-        dias = request.GET.get("dias", "7")
+        evento_id = request.GET.get("evento")
 
-        try:
-            dias = int(dias)
-        except ValueError:
-            dias = 7
+        if not evento_id:
+            return JsonResponse(
+                {"error": "Debe seleccionar un evento."},
+                status=400,
+            )
 
-        # Solo permitimos 7 o 30 por ahora
-        if dias not in [7, 30]:
-            dias = 7
+        evento = get_object_or_404(Evento, pk=evento_id)
 
-        fecha_inicio = timezone.localdate() - timedelta(days=dias - 1)
+        # "todo" permite visualizar un evento antiguo completo.
+        dias = request.GET.get("dias", "todo")
 
-        queryset = ParticipanteMapa.objects.filter(fecha__gte=fecha_inicio)
+        queryset = ParticipanteMapa.objects.filter(evento=evento)
 
-        resumen_qs = queryset.values("comuna", "tipo_participante").annotate(
-            cantidad=Count("id")
-        )
+        if dias != "todo":
+            try:
+                dias = int(dias)
+            except ValueError:
+                dias = 7
+
+            if dias not in [1, 7]:
+                dias = 7
+
+            fecha_inicio = timezone.localdate() - timedelta(days=dias - 1)
+            queryset = queryset.filter(fecha__gte=fecha_inicio)
+
+        resumen_qs = queryset.values(
+            "comuna",
+            "tipo_participante",
+        ).annotate(cantidad=Count("id"))
 
         resumen_dict = {}
 
@@ -111,39 +110,58 @@ class MapaDatosView(LoginRequiredMixin, View):
         for comuna in resumen_dict.values():
             comuna["TOTAL"] = comuna["EMPRENDEDOR"] + comuna["ASISTENTE"]
 
-        detalle = list(
-            queryset.values(
-                "comuna",
-                "tipo_participante",
-                "fecha",
-            )
-        )
-
-        detalle_formateado = [
+        detalle = [
             {
                 "PART_TCOMUNA": item["comuna"],
                 "TIPO": item["tipo_participante"],
                 "FECHA": item["fecha"].isoformat(),
             }
-            for item in detalle
+            for item in queryset.values(
+                "comuna",
+                "tipo_participante",
+                "fecha",
+            )
         ]
 
-        data = {
-            "resumen": list(resumen_dict.values()),
-            "detalle": detalle_formateado,
-        }
+        return JsonResponse(
+            {
+                "evento": {
+                    "id": evento.id,
+                    "nombre": evento.nombre,
+                },
+                "config": {
+                    "mostrar_desglose_por_tipo": (evento.mostrar_desglose_por_tipo),
+                },
+                "resumen": list(resumen_dict.values()),
+                "detalle": detalle,
+            }
+        )
 
-        return JsonResponse(data)
 
-
-# Vistas Principales
 class MapaTemplaView(LoginRequiredMixin, TemplateView):
     template_name = "pages/mapa/carga_mapa.html"
     login_url = reverse_lazy("account_login")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        eventos = Evento.objects.order_by(
+            "-fecha_evento",
+            "-id",
+        )
+
+        evento_id = self.request.GET.get("evento")
+
+        if evento_id:
+            evento_activo = eventos.filter(pk=evento_id).first()
+        else:
+            # Usa automáticamente el evento más reciente.
+            evento_activo = eventos.first()
+
+        context["eventos"] = eventos
+        context["evento_activo"] = evento_activo
         context["dias_filtro"] = self.request.GET.get("dias", "7")
+
         return context
 
 
@@ -153,7 +171,23 @@ class MapaTempla2View(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        eventos = Evento.objects.order_by(
+            "-fecha_evento",
+            "-id",
+        )
+
+        evento_id = self.request.GET.get("evento")
+
+        if evento_id:
+            evento_activo = eventos.filter(pk=evento_id).first()
+        else:
+            evento_activo = eventos.first()
+
+        context["eventos"] = eventos
+        context["evento_activo"] = evento_activo
         context["dias_filtro"] = self.request.GET.get("dias", "7")
+
         return context
 
 

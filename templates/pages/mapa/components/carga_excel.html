@@ -4,9 +4,36 @@
 
 {% include "components/spinner.html" %}
 
-<form action="{% url 'MapaCarga' %}" method="POST" enctype="multipart/form-data" id="uploadForm" class="mt-4 text-sm leading-6 text-gray-400 w-64 m-auto">
-  {% csrf_token %}
-  {% include "components/input_carga.html" with id_input="id_document" name_input="document" tipo_archivo=".xls, .xlsx, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" %}
-  <p class="text-xs leading-5 text-gray-400 my-2">XLSX hasta 50MB</p>
-  {% include "components/btn/button.html" with button_id="uploadButton" button_text="Subir Documento" button_class="hidden" %}
+<form
+    action="{% url 'MapaCarga' %}"
+    method="POST"
+    enctype="multipart/form-data"
+    id="uploadForm"
+    class="m-auto mt-4 w-64 text-sm leading-6 text-gray-400"
+>
+    {% csrf_token %}
+
+    {% if evento_predeterminado %}
+        <input
+            type="hidden"
+            name="evento"
+            value="{{ evento_predeterminado.id }}"
+        >
+
+        <p class="mb-3 text-center text-xs text-emerald-400">
+            Evento actual: {{ evento_predeterminado.nombre }}
+        </p>
+    {% else %}
+        <p class="mb-3 text-center text-xs text-red-400">
+            No existe un evento creado. Debes crear uno antes de cargar el Excel.
+        </p>
+    {% endif %}
+
+    {% include "components/input_carga.html" with id_input="id_document" name_input="document" tipo_archivo=".xls, .xlsx, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" %}
+
+    <p class="my-2 text-xs leading-5 text-gray-400">
+        XLSX hasta 50 MB
+    </p>
+
+    {% include "components/btn/button.html" with button_id="uploadButton" button_text="Subir Documento" button_class="hidden" %}
 </form>

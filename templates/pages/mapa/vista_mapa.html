@@ -10,6 +10,27 @@
 {% endblock extra_css %}
 
 {% block content %}
+  <div class="relative flex min-h-[95px] items-center justify-between bg-white px-4 py-3 sm:px-7">
+      
+      <div class="flex w-[75px] items-center sm:w-[150px]">
+          <img
+              src="{% static 'img/INACAP.jpg' %}"
+              alt="INACAP"
+              class="w-[70px] object-contain sm:w-[120px]"
+          >
+      </div>
+
+      <h1 class="absolute left-1/2 w-[48%] -translate-x-1/2 text-center text-sm font-bold text-zinc-700 sm:w-auto sm:whitespace-nowrap sm:text-2xl">
+          MAPA TERRITORIAL DE ÑUBLE
+      </h1>
+
+      <img
+          src="{% static 'img/vcm.png' %}"
+          alt="Cerrar sesión"
+          class="w-[60px] object-contain sm:w-[90px]"
+      >
+  </div>
+
   <div class="pt-6">
     {% include 'pages/mapa/secciones/mapa.html' %}
   </div>

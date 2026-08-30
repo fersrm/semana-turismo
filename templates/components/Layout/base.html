@@ -16,7 +16,16 @@
     <script defer src="{% static "js/mensajes.js" %}"></script>
     {% block javascript %} {% endblock javascript %}
   </head>
-  <body class="bg-gray-900/90 min-h-dvh">
+  <body
+    class="
+        min-h-dvh
+        {% if request.resolver_match.url_name == 'MapaVista' %}
+            bg-white text-gray-900
+        {% else %}
+            bg-gray-900/90 text-white
+        {% endif %}
+    "
+    >
     
     {% block content %} {% endblock content %}
     

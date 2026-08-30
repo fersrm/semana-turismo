@@ -7,29 +7,61 @@ const button = document.getElementById("reload");
 const summaryLayer = document.getElementById("summary-layer");
 const filtroDias = document.getElementById("filtro-dias");
 
+const eventoId = mapId.dataset.eventoId;
+
+let datosActuales = {
+  resumen: [],
+  detalle: [],
+  config: {
+    mostrar_desglose_por_tipo: true,
+  },
+};
+
 function obtenerDiasSeleccionados() {
   if (filtroDias) {
     return filtroDias.value;
   }
 
-  return "7"; // por defecto últimos 7 días
+  return "todo";
+}
+
+function mostrarDesglose() {
+  return datosActuales.config?.mostrar_desglose_por_tipo ?? true;
 }
 
 async function loadData() {
+  if (!eventoId) {
+    console.error("No se encontró el ID del evento en data-evento-id.");
+    return datosActuales;
+  }
+
   try {
     const diasSeleccionados = obtenerDiasSeleccionados();
-    const url = `/mapa/datos/?dias=${diasSeleccionados}&t=${new Date().getTime()}`;
+
+    const url =
+      `/mapa/datos/?evento=${encodeURIComponent(eventoId)}` +
+      `&dias=${encodeURIComponent(diasSeleccionados)}` +
+      `&t=${new Date().getTime()}`;
 
     const response = await fetch(url, {
       cache: "no-store",
     });
 
-    if (!response.ok) throw new Error("Network response was not ok");
+    if (!response.ok) {
+      throw new Error("No fue posible obtener los datos del mapa.");
+    }
 
     return await response.json();
   } catch (error) {
-    console.error("Fetch error:", error);
-    return { resumen: [], detalle: [] };
+    console.error("Error al cargar datos del mapa:", error);
+
+    return {
+      resumen: [],
+      detalle: [],
+      config: {
+        mostrar_desglose_por_tipo: true,
+      },
+    };
   }
 }
 
@@ -47,9 +79,35 @@ function createTableHTML(titulo, resumenComuna, detalleComuna) {
       <caption>${titulo}</caption>
       <tbody>
         <tr>
-          <td class="no-data" colspan="2">No hay datos para esta comuna</td>
+          <td class="no-data" colspan="2">
+            No hay datos para esta comuna
+          </td>
         </tr>
       </tbody>
+    `;
+  }
+
+  const total = resumenComuna.TOTAL || detalleComuna.length || 0;
+
+  let filasTipo = "";
+
+  if (mostrarDesglose()) {
+    filasTipo = `
+      <tr>
+        <td>Emprendedores</td>
+        <td>${resumenComuna.EMPRENDEDOR || 0}</td>
+      </tr>
+      <tr>
+        <td>Asistentes</td>
+        <td>${resumenComuna.ASISTENTE || 0}</td>
+      </tr>
+    `;
+  } else {
+    filasTipo = `
+      <tr>
+        <td>Asistentes</td>
+        <td>${total}</td>
+      </tr>
     `;
   }
 
@@ -62,34 +120,29 @@ function createTableHTML(titulo, resumenComuna, detalleComuna) {
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>Emprendedores</td>
-        <td>${resumenComuna.EMPRENDEDOR || 0}</td>
-      </tr>
-      <tr>
-        <td>Asistentes</td>
-        <td>${resumenComuna.ASISTENTE || 0}</td>
-      </tr>
+      ${filasTipo}
       <tr class="total_tabla">
         <td>Total</td>
-        <td>${resumenComuna.TOTAL || detalleComuna.length}</td>
+        <td>${total}</td>
       </tr>
     </tbody>
   `;
 }
 
-async function createTable(titulo, comuna) {
-  const data = await loadData();
-  const resumenComuna = filterResumenByComuna(data, comuna);
-  const detalleComuna = filterDetalleByComuna(data, comuna);
+function createTable(titulo, comuna) {
+  const resumenComuna = filterResumenByComuna(datosActuales, comuna);
+
+  const detalleComuna = filterDetalleByComuna(datosActuales, comuna);
 
   const table = document.createElement("table");
+
   table.innerHTML = createTableHTML(titulo, resumenComuna, detalleComuna);
 
-  if (!document.querySelector(".selected-svg-container table")) {
+  if (!selectedSvgContainer.querySelector("table")) {
     selectedSvgContainer.appendChild(table);
 
     table.classList.remove("show");
+
     setTimeout(() => {
       table.classList.add("show");
     }, 30);
@@ -98,67 +151,81 @@ async function createTable(titulo, comuna) {
 
 function handleSelection(id) {
   const pathElement = svg.querySelector(`#${id} path`);
-  if (pathElement) {
-    const allPaths = svg.querySelectorAll("path");
-    allPaths.forEach((path) => path.classList.remove("active_path"));
 
-    pathElement.classList.add("active_path");
-
-    const selectedPath = pathElement.getAttribute("d");
-
-    const newSvg = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "svg",
-    );
-    newSvg.setAttribute("viewBox", "0 0 598.78 451.08");
-    newSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-
-    const newPath = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "path",
-    );
-    newPath.setAttribute("class", "cls-2");
-    newPath.setAttribute("d", selectedPath);
-
-    newSvg.appendChild(newPath);
-
-    selectedSvgContainer.innerHTML = "";
-    selectedSvgContainer.appendChild(newSvg);
-
-    const dataTitle = pathElement.getAttribute("data-title");
-    const dataName = pathElement.getAttribute("data-name");
-
-    createTable(dataTitle, dataName);
-
-    mapId.classList.add("path_active");
-    mapSvg.classList.add("path_active");
-    list.classList.add("map__list--mini");
-    button.classList.add("path_active");
-    document.querySelectorAll(".svg_nombre").forEach((element) => {
-      element.classList.add("hidden_element");
-    });
-    document.querySelector(".total-general").classList.add("hidden_element");
-    document.querySelector(".map__list").classList.add("hidden_element");
-    selectedSvgContainer.classList.add("path_active");
-
-    newPath.classList.remove("show");
-    setTimeout(() => {
-      newPath.classList.add("show");
-    }, 30);
+  if (!pathElement) {
+    return;
   }
+
+  const allPaths = svg.querySelectorAll("path");
+
+  allPaths.forEach((path) => {
+    path.classList.remove("active_path");
+  });
+
+  pathElement.classList.add("active_path");
+
+  const selectedPath = pathElement.getAttribute("d");
+
+  const newSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+
+  newSvg.setAttribute("viewBox", "0 0 598.78 451.08");
+  newSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+  const newPath = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "path",
+  );
+
+  newPath.setAttribute("class", "cls-2");
+  newPath.setAttribute("d", selectedPath);
+
+  newSvg.appendChild(newPath);
+
+  selectedSvgContainer.innerHTML = "";
+  selectedSvgContainer.appendChild(newSvg);
+
+  const dataTitle = pathElement.getAttribute("data-title");
+  const dataName = pathElement.getAttribute("data-name");
+
+  createTable(dataTitle, dataName);
+
+  mapId.classList.add("path_active");
+  mapSvg.classList.add("path_active");
+  list.classList.add("map__list--mini");
+  button.classList.add("path_active");
+
+  document.querySelectorAll(".svg_nombre").forEach((element) => {
+    element.classList.add("hidden_element");
+  });
+
+  document.querySelector(".total-general")?.classList.add("hidden_element");
+
+  document.querySelector(".map__list")?.classList.add("hidden_element");
+
+  selectedSvgContainer.classList.add("path_active");
+
+  newPath.classList.remove("show");
+
+  setTimeout(() => {
+    newPath.classList.add("show");
+  }, 30);
 }
 
 function handleSvgClick(event) {
   const target = event.target;
+
   if (target.tagName === "path") {
     handleSelection(target.parentElement.id);
-  } else if (target.tagName === "tspan") {
+  }
+
+  if (target.tagName === "tspan") {
     handleSelection(target.parentElement.id.replace("text_", "provincia_"));
   }
 }
 
 function handleListClick(event) {
   const target = event.target;
+
   if (target.tagName === "A") {
     handleSelection(target.id.replace("lista-", "provincia_"));
   }
@@ -174,34 +241,46 @@ function handleButtonClick() {
   document.querySelectorAll(".svg_nombre").forEach((element) => {
     element.classList.remove("hidden_element");
   });
-  document.querySelector(".total-general").classList.remove("hidden_element");
-  document.querySelector(".map__list").classList.remove("hidden_element");
+
+  document.querySelector(".total-general")?.classList.remove("hidden_element");
+
+  document.querySelector(".map__list")?.classList.remove("hidden_element");
+
   const allPaths = svg.querySelectorAll("path");
-  allPaths.forEach((path) => path.classList.remove("active_path"));
+
+  allPaths.forEach((path) => {
+    path.classList.remove("active_path");
+  });
 }
 
 svg.addEventListener("click", handleSvgClick);
 list.addEventListener("click", handleListClick);
 button.addEventListener("click", handleButtonClick);
 
-async function calculateTotalForComunas(comunas) {
-  const data = await loadData();
-
+function calculateTotalForComunas(data, comunas) {
   let totalSum = 0;
-  let comunaTotals = [];
+
+  const comunaTotals = [];
 
   for (const [key, value] of Object.entries(comunas)) {
     const resumen = data.resumen.find((item) => item.PART_TCOMUNA === key);
-    const totalComuna = resumen ? resumen.TOTAL : 0;
+
+    const totalComuna = resumen ? Number(resumen.TOTAL) : 0;
 
     totalSum += totalComuna;
-    comunaTotals.push({ comuna: value, total: totalComuna });
+
+    comunaTotals.push({
+      comuna: value,
+      total: totalComuna,
+    });
   }
 
   comunaTotals.sort((a, b) => a.total - b.total);
+
   const threeLeast = comunaTotals.slice(0, 3);
 
   const tbody = document.querySelector(".total-general table tbody");
+
   if (tbody) {
     tbody.innerHTML = "";
 
@@ -210,10 +289,11 @@ async function calculateTotalForComunas(comunas) {
 
       const comunaCell = document.createElement("td");
       comunaCell.textContent = item.comuna;
-      row.appendChild(comunaCell);
 
       const countCell = document.createElement("td");
       countCell.textContent = item.total;
+
+      row.appendChild(comunaCell);
       row.appendChild(countCell);
 
       tbody.appendChild(row);
@@ -272,7 +352,9 @@ const comunaCenters = {
 };
 
 function getHeatColor(value, min, max) {
-  if (max === min) return "#4aa3df"; // azul medio por defecto
+  if (max === min) {
+    return "#4aa3df";
+  }
 
   const ratio = (value - min) / (max - min);
 
@@ -285,17 +367,20 @@ function getHeatColor(value, min, max) {
   if (ratio <= 0.7) return "#f7a35c";
   if (ratio <= 0.8) return "#f06d4a";
   if (ratio <= 0.9) return "#eb4d3d";
+
   return "#d62828";
 }
 
 function paintHeatMap(data) {
   const resumen = data.resumen || [];
+
   const totals = resumen.map((item) => Number(item.TOTAL) || 0);
 
   const min = totals.length ? Math.min(...totals) : 0;
   const max = totals.length ? Math.max(...totals) : 0;
 
   const resumenMap = {};
+
   resumen.forEach((item) => {
     resumenMap[item.PART_TCOMUNA] = {
       ...item,
@@ -310,36 +395,41 @@ function paintHeatMap(data) {
     const item = resumenMap[comuna];
     const total = item ? item.TOTAL : 0;
 
-    const color = total > 0 ? getHeatColor(total, min, max) : "#b4babd";
-
-    path.style.fill = color;
+    path.style.fill = total > 0 ? getHeatColor(total, min, max) : "#b4babd";
   });
 }
 
 function drawSummaryMarkers(data) {
   if (!summaryLayer) {
-    console.error("No existe #summary-layer en el SVG");
+    console.error("No existe #summary-layer en el SVG.");
     return;
   }
 
   summaryLayer.innerHTML = "";
 
   const resumen = data.resumen || [];
+  const desgloseActivo = mostrarDesglose();
 
   resumen.forEach((item) => {
     const comuna = item.PART_TCOMUNA;
     const center = comunaCenters[comuna];
-    if (!center) return;
 
-    const emprendedores = item.EMPRENDEDOR || 0;
-    const asistentes = item.ASISTENTE || 0;
-    const total = item.TOTAL || 0;
+    if (!center) {
+      return;
+    }
+
+    const emprendedores = Number(item.EMPRENDEDOR) || 0;
+    const asistentes = Number(item.ASISTENTE) || 0;
+    const total = Number(item.TOTAL) || 0;
 
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
     group.setAttribute("transform", `translate(${center.x}, ${center.y})`);
+
     group.setAttribute("class", "summary-marker");
 
     const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+
     bg.setAttribute("x", -30);
     bg.setAttribute("y", -12);
     bg.setAttribute("width", 60);
@@ -359,6 +449,7 @@ function drawSummaryMarkers(data) {
       "http://www.w3.org/2000/svg",
       "tspan",
     );
+
     line1.setAttribute("x", "0");
     line1.setAttribute("dy", "-2");
     line1.setAttribute("font-size", "7");
@@ -373,16 +464,11 @@ function drawSummaryMarkers(data) {
     line2.setAttribute("dy", "10");
     line2.setAttribute("font-size", "8");
 
-    const emp = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    emp.textContent = `E${emprendedores}`;
-    emp.setAttribute("dx", "0");
-
-    const asi = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    asi.textContent = `A${asistentes}`;
-    asi.setAttribute("dx", "10");
-
-    line2.appendChild(emp);
-    line2.appendChild(asi);
+    if (desgloseActivo) {
+      line2.textContent = `E${emprendedores}  A${asistentes}`;
+    } else {
+      line2.textContent = `A${total}`;
+    }
 
     text.appendChild(line1);
     text.appendChild(line2);
@@ -391,7 +477,15 @@ function drawSummaryMarkers(data) {
       "http://www.w3.org/2000/svg",
       "title",
     );
-    title.textContent = `${comuna} | Emprendedores: ${emprendedores} | Asistentes: ${asistentes} | Total: ${total}`;
+
+    if (desgloseActivo) {
+      title.textContent =
+        `${comuna} | Emprendedores: ${emprendedores}` +
+        ` | Asistentes: ${asistentes}` +
+        ` | Total: ${total}`;
+    } else {
+      title.textContent = `${comuna} | Asistentes: ${total}`;
+    }
 
     group.appendChild(bg);
     group.appendChild(text);
@@ -402,16 +496,17 @@ function drawSummaryMarkers(data) {
 }
 
 async function actualizarMapa() {
-  const data = await loadData();
+  datosActuales = await loadData();
 
-  paintHeatMap(data);
-  drawSummaryMarkers(data);
+  paintHeatMap(datosActuales);
+  drawSummaryMarkers(datosActuales);
 
-  const total = await calculateTotalForComunas(comunas);
+  const total = calculateTotalForComunas(datosActuales, comunas);
+
   const totalGeneral = document.querySelector(".total-general p");
 
   if (totalGeneral) {
-    totalGeneral.innerHTML = total;
+    totalGeneral.textContent = total;
   }
 }
 

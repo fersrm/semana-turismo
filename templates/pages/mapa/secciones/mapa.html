@@ -1,24 +1,41 @@
 {% load static %}
 
-<div class="container_mapa">
+<div class="container_mapa px-4 sm:px-7">
     <div class="container_contex">
 
-      <div class="map" id="map">
+      <div class="map   {% if request.resolver_match.url_name == 'MapaVista' %} map--vista {% endif %}"  id="map" data-evento-id="{{ evento_activo.id }}">
         <!-- TOTAL GENERAL ------------------- -->
         <div class="total-general">
           <div class="total-svg">
-              <h4>Participantes</h4>
+              <h4 class= "{% if request.resolver_match.url_name == 'MapaVista' %}
+                      text-gray-900
+                  {% else %}
+                      text-white
+                  {% endif %}
+                  ">Participantes</h4>
 
               <div class="beneficiarios">
                   <svg viewBox="0 0 448 512">
                       <path
                           d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z" />
                   </svg>
-                  <p></p>
+                  <p class=" {% if request.resolver_match.url_name == 'MapaVista' %}
+                      text-gray-900
+                  {% else %}
+                      text-white
+                  {% endif %}"></p>
               </div>
 
               <!-- LEYENDA MAPA DE CALOR -->
-              <div class="leyenda-calor">
+            <div
+                  class="leyenda-calor
+                  {% if request.resolver_match.url_name == 'MapaVista' %}
+                      text-gray-900
+                  {% else %}
+                      text-white
+                  {% endif %}
+                  "
+              >
                   <div>
                       <span class="color-box frio"></span>
                       <span>Menor participación</span>
@@ -37,11 +54,21 @@
                   
               </div>
             
+              {% if evento_activo and evento_activo.mostrar_desglose_por_tipo %}
               <!-- LEYENDA TIPOS -->
-              <div class="leyenda-tipos">
+              <div
+                  class="leyenda-tipos
+                  {% if request.resolver_match.url_name == 'MapaVista' %}
+                      text-gray-900
+                  {% else %}
+                      text-white
+                  {% endif %}
+                  "
+              >
                   <span>E = Emprendedores</span>
                   <span>A = Asistentes</span>
               </div>
+          {% endif %}
 
           </div>
         </div>
@@ -74,9 +101,20 @@
 </div>
 
 <!-- --------------------------------------------- -->
-<div class="mensaje-error">
+<div
+    class="mensaje-error
+    {% if request.resolver_match.url_name == 'MapaVista' %}
+        bg-white text-gray-900
+    {% else %}
+        text-white
+    {% endif %}
+    "
+>
     <div class="container_img_error">
-        <img src="{% static 'img/error.png' %}" alt="No disponible en móvil" />
+        <img
+            src="{% static 'img/error.png' %}"
+            alt="No disponible en móvil"
+        />
     </div>
 
     <h2>Visualización no disponible</h2>
