@@ -278,7 +278,7 @@ strong {
 }
 
 .duju {
-  bottom: -60px;
+  bottom: -50px;
   right: 128px;
   color: #1772b8;
 }
@@ -436,36 +436,8 @@ strong {
 }
 
 @media (width < 1200px) {
-  .container,
-  .map,
-  .container_mapa {
+  .map__svg {
     display: none;
-  }
-
-  .mensaje-error {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    margin: 13px;
-
-    .container_img_error {
-      width: 10em;
-      margin: 2em;
-
-      & img {
-        width: 100%;
-        object-fit: cover;
-      }
-    }
-
-    & h2 {
-      margin: 1em;
-    }
-
-    & p {
-      font-size: 1.2rem;
-    }
   }
 }
 
@@ -572,4 +544,8 @@ strong {
 
 .hidden_element {
   display: none;
+}
+
+.total_tabla {
+  font-weight: bolder;
 }

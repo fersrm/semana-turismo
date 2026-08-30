@@ -5,16 +5,27 @@ const svg = document.getElementById("mapa_nuble");
 const selectedSvgContainer = document.getElementById("selected-svg-container");
 const button = document.getElementById("reload");
 const summaryLayer = document.getElementById("summary-layer");
+const filtroDias = document.getElementById("filtro-dias");
+
+function obtenerDiasSeleccionados() {
+  if (filtroDias) {
+    return filtroDias.value;
+  }
+
+  return "7"; // por defecto últimos 7 días
+}
 
 async function loadData() {
   try {
-    const url = `/media/json/data.json?t=${new Date().getTime()}`;
+    const diasSeleccionados = obtenerDiasSeleccionados();
+    const url = `/mapa/datos/?dias=${diasSeleccionados}&t=${new Date().getTime()}`;
 
     const response = await fetch(url, {
       cache: "no-store",
     });
 
     if (!response.ok) throw new Error("Network response was not ok");
+
     return await response.json();
   } catch (error) {
     console.error("Fetch error:", error);
@@ -59,7 +70,7 @@ function createTableHTML(titulo, resumenComuna, detalleComuna) {
         <td>Asistentes</td>
         <td>${resumenComuna.ASISTENTE || 0}</td>
       </tr>
-      <tr>
+      <tr class="total_tabla">
         <td>Total</td>
         <td>${resumenComuna.TOTAL || detalleComuna.length}</td>
       </tr>
@@ -265,15 +276,15 @@ function getHeatColor(value, min, max) {
 
   const ratio = (value - min) / (max - min);
 
-  if (ratio <= 0.01) return "#8fd3f2";
-  if (ratio <= 0.015) return "#6fc3ec";
-  if (ratio <= 0.05) return "#5bb3e6";
-  if (ratio <= 0.1) return "#4aa3df";
-  if (ratio <= 0.15) return "#ffe08a";
-  if (ratio <= 0.2) return "#ffd166";
-  if (ratio <= 0.5) return "#f7a35c";
-  if (ratio <= 0.7) return "#f06d4a";
-  if (ratio <= 0.8) return "#eb4d3d";
+  if (ratio <= 0.1) return "#8fd3f2";
+  if (ratio <= 0.2) return "#6fc3ec";
+  if (ratio <= 0.3) return "#5bb3e6";
+  if (ratio <= 0.4) return "#4aa3df";
+  if (ratio <= 0.5) return "#ffe08a";
+  if (ratio <= 0.6) return "#ffd166";
+  if (ratio <= 0.7) return "#f7a35c";
+  if (ratio <= 0.8) return "#f06d4a";
+  if (ratio <= 0.9) return "#eb4d3d";
   return "#d62828";
 }
 
@@ -390,7 +401,7 @@ function drawSummaryMarkers(data) {
   });
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function actualizarMapa() {
   const data = await loadData();
 
   paintHeatMap(data);
@@ -398,7 +409,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const total = await calculateTotalForComunas(comunas);
   const totalGeneral = document.querySelector(".total-general p");
+
   if (totalGeneral) {
     totalGeneral.innerHTML = total;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await actualizarMapa();
+
+  if (filtroDias) {
+    filtroDias.addEventListener("change", async () => {
+      await actualizarMapa();
+    });
   }
 });

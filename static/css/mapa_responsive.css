@@ -1,0 +1,34 @@
+@media (width < 1200px) {
+  .container,
+  .map,
+  .container_mapa {
+    display: none;
+  }
+
+  .mensaje-error {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 13px;
+    color: #ffffff;
+  }
+
+  .mensaje-error .container_img_error {
+    width: 10em;
+    margin: 2em;
+  }
+
+  .mensaje-error .container_img_error img {
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .mensaje-error h2 {
+    margin: 1em;
+  }
+
+  .mensaje-error p {
+    font-size: 1.2rem;
+  }
+}

@@ -66,7 +66,8 @@ class UserDeactivateView(LoginRequiredMixin, PermitsPositionMixin, View):
 
         messages.success(request, "Usuario desactivado correctamente.")
         return redirect("User")
-    
+
+
 class UserActivateView(LoginRequiredMixin, PermitsPositionMixin, View):
     def post(self, request, pk, *args, **kwargs):
         user = User.objects.get(pk=pk)
@@ -75,7 +76,6 @@ class UserActivateView(LoginRequiredMixin, PermitsPositionMixin, View):
 
         messages.success(request, "Usuario activado correctamente.")
         return redirect("User")
-
 
 
 class UserCreateView(LoginRequiredMixin, PermitsPositionMixin, View):

@@ -1,14 +1,16 @@
 import pandas as pd
 from unidecode import unidecode
-from django.conf import settings
-import os
-import json
+from django.utils import timezone
+from MapaApp.models import ParticipanteMapa
 
 
 class ExcelAdapter:
     # Nombres reales de columnas en el Excel
     COL_ROL = "¿Desde qué rol nos acompañas hoy?"
     COL_COMUNA = "Indique comuna de la organización o empresa que representa"
+
+    # Ajustar al nombre real de la columna fecha del Excel
+    COL_FECHA = "Fecha"
 
     def clean_text(self, x):
         if pd.isna(x):
@@ -36,53 +38,59 @@ class ExcelAdapter:
 
         return "ASISTENTE"
 
+    def obtener_fecha(self, valor_fecha):
+        """
+        Si el Excel trae una fecha válida, la usa.
+        Si no trae fecha o viene vacía, usa la fecha local actual.
+        """
+        if pd.isna(valor_fecha) or valor_fecha == "":
+            return timezone.localdate()
+
+        fecha = pd.to_datetime(valor_fecha, errors="coerce")
+
+        if pd.isna(fecha):
+            return timezone.localdate()
+
+        return fecha.date()
+
     def process_excel_file(self, document):
         df = pd.read_excel(document)
+
+        # Si la columna fecha no existe en el Excel, se crea vacía
+        if self.COL_FECHA not in df.columns:
+            df[self.COL_FECHA] = None
 
         # Dejar solo las columnas necesarias
         df = df[
             [
                 self.COL_ROL,
                 self.COL_COMUNA,
+                self.COL_FECHA,
             ]
         ].copy()
 
-        # Limpiar comuna y rol
+        # Limpiar datos
         df["PART_TCOMUNA"] = df[self.COL_COMUNA].apply(self.clean_text)
         df["TIPO_PARTICIPANTE"] = df[self.COL_ROL].apply(self.map_tipo_participante)
+        df["FECHA_REGISTRO"] = df[self.COL_FECHA].apply(self.obtener_fecha)
 
         # Quitar filas sin comuna
         df = df[df["PART_TCOMUNA"] != ""]
 
-        # Resumen por comuna y tipo
-        resumen = (
-            df.groupby(["PART_TCOMUNA", "TIPO_PARTICIPANTE"])
-            .size()
-            .unstack(fill_value=0)
-            .reset_index()
-        )
+        # Crear objetos para guardar en BD
+        participantes = [
+            ParticipanteMapa(
+                comuna=row["PART_TCOMUNA"],
+                tipo_participante=row["TIPO_PARTICIPANTE"],
+                fecha=row["FECHA_REGISTRO"],
+                origen="EXCEL",
+            )
+            for _, row in df.iterrows()
+        ]
 
-        if "EMPRENDEDOR" not in resumen.columns:
-            resumen["EMPRENDEDOR"] = 0
-        if "ASISTENTE" not in resumen.columns:
-            resumen["ASISTENTE"] = 0
+        # Eliminado masivo
+        ParticipanteMapa.objects.filter(origen="EXCEL").delete()
+        # Guardado masivo
+        ParticipanteMapa.objects.bulk_create(participantes)
 
-        resumen["TOTAL"] = resumen["EMPRENDEDOR"] + resumen["ASISTENTE"]
-
-        # Detalle simple
-        detalle = df[
-            ["PART_TCOMUNA", "TIPO_PARTICIPANTE"]
-        ].rename(columns={"TIPO_PARTICIPANTE": "TIPO"})
-
-        data = {
-            "resumen": resumen.to_dict(orient="records"),
-            "detalle": detalle.to_dict(orient="records"),
-        }
-
-        json_path = os.path.join(settings.MEDIA_ROOT, "json", "data.json")
-        os.makedirs(os.path.dirname(json_path), exist_ok=True)
-
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-
-        return json_path
+        return len(participantes)

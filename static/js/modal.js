@@ -2,7 +2,7 @@ function abrir_modal(
   url,
   formId = null,
   modalId = "containerModal",
-  bodyId = "modalBody"
+  bodyId = "modalBody",
 ) {
   fetch(url)
     .then((response) => response.text())
@@ -12,11 +12,18 @@ function abrir_modal(
       if (formId) {
         initializeForm(formId);
       }
+
       document.getElementById(modalId).style.display = "block";
     })
     .catch((error) => console.error("Error loading modal content:", error));
 }
 
+// Modal para cargar Excel
 function abrir_modal_documento(url) {
-  abrir_modal(url, "id_document");
+  abrir_modal(url, "id_document", "containerModalExcel", "modalBodyExcel");
+}
+
+// Modal para agregar registro manual
+function abrir_modal_manual(url) {
+  abrir_modal(url, null, "containerModalManual", "modalBodyManual");
 }

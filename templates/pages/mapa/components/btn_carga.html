@@ -1,10 +1,64 @@
-<div x-data="{ modelOpen: false }" id="addModal">
-  <button @click="modelOpen =!modelOpen" class="border border-solid border-white btn_plus_excel flex items-center justify-center px-3 py-2 space-x-2 text-sm tracking-wide text-white capitalize transition-colors duration-200 transform bg-indigo-500 rounded-md dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:bg-indigo-700 hover:bg-indigo-600 focus:outline-none focus:bg-indigo-500 focus:ring focus:ring-indigo-300 focus:ring-opacity-50 w-36" id="openModalButton"  
-    onclick="abrir_modal_documento('{% url 'MapaCarga' %}')">
-    </p>Cargar Datos<p>  
-    <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-    </svg>
-  </button>
-  {% include "components/modal/modal.html" %}
+<div class="flex justify-between items-center gap-4 max-[1200px]:flex-col max-[1200px]:items-stretch">
+
+    <!-- BOTÓN CARGAR EXCEL -->
+    <div x-data="{ modelOpen: false }" id="addModal" class="max-[1200px]:w-full">
+        <button
+            @click="modelOpen = !modelOpen"
+            class="border border-solid border-white btn_plus_excel flex items-center justify-center px-3 py-2 space-x-2 text-sm tracking-wide text-white capitalize transition-colors duration-200 transform bg-indigo-500 rounded-md hover:bg-indigo-600 focus:outline-none focus:bg-indigo-500 focus:ring focus:ring-indigo-300 focus:ring-opacity-50 w-36 max-[1200px]:w-full"
+            id="openModalButton"
+            onclick="abrir_modal_documento('{% url 'MapaCarga' %}', 'modalBodyExcel')"
+        >
+            <span>Cargar Datos</span>
+
+            <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clip-rule="evenodd" />
+            </svg>
+        </button>
+
+        {% include "components/modal/modal.html" with modal_id="containerModalExcel" modal_body_id="modalBodyExcel" modal_title="Carga de Archivo" %}
+    </div>
+
+    <!-- BOTÓN AGREGAR MANUAL -->
+    <div x-data="{ modelOpen: false }" id="manualModal" class="max-[1200px]:w-full">
+        <button
+            @click="modelOpen = !modelOpen"
+            class="border border-solid border-white flex items-center justify-center px-3 py-2 space-x-2 text-sm tracking-wide text-white capitalize transition-colors duration-200 transform bg-emerald-500 rounded-md hover:bg-emerald-600 focus:outline-none focus:bg-emerald-500 focus:ring focus:ring-emerald-300 focus:ring-opacity-50 w-40 max-[1200px]:w-full"
+            onclick="abrir_modal_manual('{% url 'MapaManual' %}', 'modalBodyManual')"
+        >
+            <span>Agregar Manual</span>
+
+            <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                    d="M8.5 3a1.5 1.5 0 00-1.5 1.5V6H5.5A1.5 1.5 0 004 7.5v7A1.5 1.5 0 005.5 16h9a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0014.5 6H13V4.5A1.5 1.5 0 0011.5 3h-3zM8 6V4.5a.5.5 0 01.5-.5h3a.5.5 0 01.5.5V6H8z" />
+            </svg>
+        </button>
+
+        {% include "components/modal/modal.html" with modal_id="containerModalManual" modal_body_id="modalBodyManual" modal_title="Carga Manual" %}
+    </div>
+
+    <!-- FILTRO -->
+    {% if request.resolver_match.url_name != 'MapaVista' %}
+    <div class="flex justify-end max-[1200px]:w-full">
+        <div class="flex items-center gap-3 px-4 py-1 border border-gray-200 rounded-lg shadow-sm bg-gray-800 max-[1200px]:w-full max-[1200px]:justify-between">
+            <label for="filtro-dias" class="text-sm font-medium text-gray-200">
+                Mostrar datos de:
+            </label>
+
+            <select
+                id="filtro-dias"
+                class="px-4 py-2 text-sm  border rounded-md outline-none cursor-pointer focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-gray-700 text-gray-200 border-gray-600"
+            >
+                <option value="7" {% if dias_filtro == "7" %}selected{% endif %}>
+                    Últimos 7 días
+                </option>
+                <option value="30" {% if dias_filtro == "30" %}selected{% endif %}>
+                    Últimos 30 días
+                </option>
+            </select>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
