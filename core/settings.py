@@ -32,7 +32,7 @@ CSRF_TRUSTED_ORIGINS = env.list(
     default=[],
 )
 
-# HTTPS termina en el proxy institucional.
+# PythonAnywhere entrega HTTPS mediante su proxy inverso.
 SECURE_PROXY_SSL_HEADER = (
     "HTTP_X_FORWARDED_PROTO",
     "https",
@@ -247,6 +247,7 @@ ACCOUNT_EMAIL_VERIFICATION = "none"  # none, optional, mandatory
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 
 ACCOUNT_LOGOUT_ON_GET = False
+ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
 
