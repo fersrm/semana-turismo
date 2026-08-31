@@ -26,6 +26,45 @@ DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
+
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=[],
+)
+
+# HTTPS termina en el proxy institucional.
+SECURE_PROXY_SSL_HEADER = (
+    "HTTP_X_FORWARDED_PROTO",
+    "https",
+)
+
+# Cookies solo por HTTPS.
+SECURE_SSL_REDIRECT = env.bool(
+    "SECURE_SSL_REDIRECT",
+    default=True,
+)
+
+SESSION_COOKIE_SECURE = env.bool(
+    "SESSION_COOKIE_SECURE",
+    default=True,
+)
+
+CSRF_COOKIE_SECURE = env.bool(
+    "CSRF_COOKIE_SECURE",
+    default=True,
+)
+
+# HSTS: inicialmente 1 hora para comprobar que todo funcione.
+SECURE_HSTS_SECONDS = env.int(
+    "SECURE_HSTS_SECONDS",
+    default=3600,
+)
+
+# No los actives aún hasta confirmar que todos los subdominios usan HTTPS.
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+
+
 # Application definition
 
 DEFAULT_DJANGO_APPS = [
@@ -64,7 +103,7 @@ TAILWIND_APP_NAME = "theme"
 
 INTERNAL_IPS = env.list("INTERNAL_IPS", default=[])
 
-NPM_BIN_PATH = os.environ.get("NPM_BIN_PATH")
+NPM_BIN_PATH = env("NPM_BIN_PATH", default="")
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 
@@ -207,7 +246,7 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = "none"  # none, optional, mandatory
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 
-ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_LOGOUT_ON_GET = False
 
 SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
 
