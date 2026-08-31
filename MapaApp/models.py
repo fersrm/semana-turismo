@@ -53,3 +53,38 @@ class ParticipanteMapa(models.Model):
 
     def __str__(self):
         return f"{self.comuna} - {self.tipo_participante} - {self.fecha}"
+
+
+class ConfiguracionMapa(models.Model):
+    ESCALA_CHOICES = [
+        ("LOG", "Logarítmica (recomendada)"),
+        ("LINEAL", "Lineal"),
+    ]
+
+    columna_rol = models.CharField(
+        max_length=255,
+        default="Indique que tipo de participante es:",
+    )
+
+    columna_comuna = models.CharField(
+        max_length=255,
+        default="Comuna",
+    )
+
+    columna_fecha = models.CharField(
+        max_length=255,
+        default="Hora de inicio",
+    )
+
+    escala_mapa = models.CharField(
+        max_length=10,
+        choices=ESCALA_CHOICES,
+        default="LOG",
+    )
+
+    class Meta:
+        verbose_name = "Configuración del mapa"
+        verbose_name_plural = "Configuración del mapa"
+
+    def __str__(self):
+        return "Configuración del mapa"

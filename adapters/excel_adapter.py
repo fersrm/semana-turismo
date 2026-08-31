@@ -1,15 +1,18 @@
 import pandas as pd
 
-from unidecode import unidecode
 from django.db import transaction
+from unidecode import unidecode
 
-from MapaApp.models import ParticipanteMapa
+from MapaApp.models import ConfiguracionMapa, ParticipanteMapa
 
 
 class ExcelAdapter:
-    COL_ROL = "Indique que tipo de participante es:"
-    COL_COMUNA = "Comuna"
-    COL_FECHA = "Hora de inicio"
+    def __init__(self):
+        self.configuracion, _ = ConfiguracionMapa.objects.get_or_create(pk=1)
+
+        self.col_rol = self.configuracion.columna_rol
+        self.col_comuna = self.configuracion.columna_comuna
+        self.col_fecha = self.configuracion.columna_fecha
 
     def clean_text(self, value):
         if pd.isna(value):
@@ -46,31 +49,41 @@ class ExcelAdapter:
     def process_excel_file(self, document, evento):
         df = pd.read_excel(document)
 
-        columnas_requeridas = [self.COL_ROL, self.COL_COMUNA]
+        columnas_requeridas = [
+            self.col_rol,
+            self.col_comuna,
+        ]
+
         faltantes = [
             columna for columna in columnas_requeridas if columna not in df.columns
         ]
 
         if faltantes:
             raise ValueError(
-                "El Excel no contiene las columnas requeridas: " + ", ".join(faltantes)
+                "El Excel no contiene las columnas configuradas: "
+                + ", ".join(faltantes)
             )
 
-        if self.COL_FECHA not in df.columns:
-            df[self.COL_FECHA] = None
+        if self.col_fecha not in df.columns:
+            df[self.col_fecha] = None
 
         df = df[
             [
-                self.COL_ROL,
-                self.COL_COMUNA,
-                self.COL_FECHA,
+                self.col_rol,
+                self.col_comuna,
+                self.col_fecha,
             ]
         ].copy()
 
-        df["PART_TCOMUNA"] = df[self.COL_COMUNA].apply(self.clean_text)
-        df["TIPO_PARTICIPANTE"] = df[self.COL_ROL].apply(self.map_tipo_participante)
-        df["FECHA_REGISTRO"] = df[self.COL_FECHA].apply(
-            lambda fecha: self.obtener_fecha(fecha, evento.fecha_evento)
+        df["PART_TCOMUNA"] = df[self.col_comuna].apply(self.clean_text)
+
+        df["TIPO_PARTICIPANTE"] = df[self.col_rol].apply(self.map_tipo_participante)
+
+        df["FECHA_REGISTRO"] = df[self.col_fecha].apply(
+            lambda fecha: self.obtener_fecha(
+                fecha,
+                evento.fecha_evento,
+            )
         )
 
         df = df[df["PART_TCOMUNA"] != ""]
@@ -87,8 +100,6 @@ class ExcelAdapter:
         ]
 
         with transaction.atomic():
-            # Solo reemplaza la carga Excel del evento seleccionado.
-            # No toca otros eventos ni registros manuales.
             ParticipanteMapa.objects.filter(
                 evento=evento,
                 origen="EXCEL",

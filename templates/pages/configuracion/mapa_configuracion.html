@@ -1,0 +1,201 @@
+{% extends 'components/Layout/base_extendido.html' %}
+
+{% block head_title %}
+    Configuración del mapa
+{% endblock head_title %}
+
+{% block content_main %}
+<main class="mx-auto max-w-6xl p-6">
+
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-white">
+            Configuración del mapa
+        </h1>
+
+        <p class="mt-1 text-sm text-gray-400">
+            Configura las columnas esperadas en el Excel, los eventos y la escala visual del mapa.
+        </p>
+    </div>
+
+    {% include 'components/mensajes.html' %}
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+        <section class="rounded-xl border border-gray-700 bg-gray-800 p-6 shadow">
+            <h2 class="mb-5 text-lg font-semibold text-white">
+                Configuración del archivo Excel
+            </h2>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input
+                    type="hidden"
+                    name="accion"
+                    value="guardar_configuracion"
+                >
+
+                {% for field in configuracion_form %}
+                    <div>
+                        <label
+                            for="{{ field.id_for_label }}"
+                            class="mb-1 block text-sm font-medium text-gray-200"
+                        >
+                            {{ field.label }}
+                        </label>
+
+                        {{ field }}
+
+                        {% for error in field.errors %}
+                            <p class="mt-1 text-xs text-red-400">
+                                {{ error }}
+                            </p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <button
+                    type="submit"
+                    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+                >
+                    Guardar configuración
+                </button>
+            </form>
+        </section>
+
+        <section class="rounded-xl border border-gray-700 bg-gray-800 p-6 shadow">
+            <h2 class="mb-5 text-lg font-semibold text-white">
+                Crear evento
+            </h2>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input
+                    type="hidden"
+                    name="accion"
+                    value="crear_evento"
+                >
+
+                {% for field in evento_form %}
+                    <div>
+                        <label
+                            for="{{ field.id_for_label }}"
+                            class="mb-1 block text-sm font-medium text-gray-200"
+                        >
+                            {{ field.label }}
+                        </label>
+
+                        {{ field }}
+
+                        {% for error in field.errors %}
+                            <p class="mt-1 text-xs text-red-400">
+                                {{ error }}
+                            </p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <button
+                    type="submit"
+                    class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+                >
+                    Crear evento
+                </button>
+            </form>
+        </section>
+    </div>
+
+    <section class="mt-6 overflow-hidden rounded-xl border border-gray-700 bg-gray-800 shadow">
+        <div class="border-b border-gray-700 px-6 py-4">
+            <h2 class="text-lg font-semibold text-white">
+                Eventos creados
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-gray-900 text-gray-300">
+                    <tr>
+                        <th class="px-6 py-3">Evento</th>
+                        <th class="px-6 py-3">Fecha</th>
+                        <th class="px-6 py-3">Vista</th>
+                        <th class="px-6 py-3 text-center">Registros</th>
+                        <th class="px-6 py-3 text-right">Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-700">
+                    {% for evento in eventos %}
+                    <tr class="text-gray-200">
+                        <td class="px-6 py-4 font-medium">
+                            {{ evento.nombre }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            {{ evento.fecha_evento|date:"d-m-Y" }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            {% if evento.mostrar_desglose_por_tipo %}
+                                <span class="rounded-full bg-indigo-500/20 px-2 py-1 text-xs text-indigo-300">
+                                    Desglose por tipo
+                                </span>
+                            {% else %}
+                                <span class="rounded-full bg-emerald-500/20 px-2 py-1 text-xs text-emerald-300">
+                                    Solo asistentes
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4 text-center">
+                            {{ evento.total_participantes }}
+                        </td>
+
+                        <td class="px-6 py-4 text-right">
+                            <form
+                                method="post"
+                                class="inline"
+                                onsubmit="
+                                    return confirm(
+                                        '¿Seguro que deseas eliminar el evento «{{ evento.nombre }}»? ' +
+                                        'También se eliminarán sus {{ evento.total_participantes }} registros.'
+                                    );
+                                "
+                            >
+                                {% csrf_token %}
+                                <input
+                                    type="hidden"
+                                    name="accion"
+                                    value="eliminar_evento"
+                                >
+                                <input
+                                    type="hidden"
+                                    name="evento_id"
+                                    value="{{ evento.id }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="text-sm font-medium text-red-400 hover:text-red-300"
+                                >
+                                    Eliminar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td
+                            colspan="5"
+                            class="px-6 py-8 text-center text-gray-400"
+                        >
+                            Aún no existen eventos creados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+{% endblock content_main %}

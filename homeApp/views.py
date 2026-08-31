@@ -6,6 +6,19 @@ from django.utils import timezone
 from UsuarioApp.models import Profile
 from datetime import timedelta
 from MapaApp.models import ParticipanteMapa
+from django.contrib import messages
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
+from django.views.generic import TemplateView
+
+from MapaApp.models import (
+    ConfiguracionMapa,
+    Evento,
+    ParticipanteMapa,
+)
+
+from .forms import ConfiguracionMapaForm, EventoForm
 
 # Create your views here.
 
@@ -58,3 +71,98 @@ class HomeView(LoginRequiredMixin, ListView):
         }
 
         return context
+
+
+class MapaConfiguracionView(LoginRequiredMixin, TemplateView):
+    template_name = "pages/configuracion/mapa_configuracion.html"
+    login_url = reverse_lazy("account_login")
+
+    def get_configuracion(self):
+        configuracion, _ = ConfiguracionMapa.objects.get_or_create(pk=1)
+        return configuracion
+
+    def get_context_data(
+        self,
+        configuracion_form=None,
+        evento_form=None,
+        **kwargs,
+    ):
+        context = super().get_context_data(**kwargs)
+
+        configuracion = self.get_configuracion()
+
+        context["configuracion_form"] = configuracion_form or ConfiguracionMapaForm(
+            instance=configuracion
+        )
+
+        context["evento_form"] = evento_form or EventoForm()
+
+        context["eventos"] = Evento.objects.annotate(
+            total_participantes=Count("participantes")
+        ).order_by("-id")
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        accion = request.POST.get("accion")
+
+        if accion == "guardar_configuracion":
+            configuracion = self.get_configuracion()
+
+            form = ConfiguracionMapaForm(
+                request.POST,
+                instance=configuracion,
+            )
+
+            if form.is_valid():
+                form.save()
+
+                messages.success(
+                    request,
+                    "Configuración del Excel y mapa actualizada.",
+                )
+
+                return redirect("MapaConfiguracion")
+
+            return self.render_to_response(
+                self.get_context_data(configuracion_form=form)
+            )
+
+        if accion == "crear_evento":
+            form = EventoForm(request.POST)
+
+            if form.is_valid():
+                evento = form.save()
+
+                messages.success(
+                    request,
+                    f"Evento «{evento.nombre}» creado correctamente.",
+                )
+
+                return redirect("MapaConfiguracion")
+
+            return self.render_to_response(self.get_context_data(evento_form=form))
+
+        if accion == "eliminar_evento":
+            evento_id = request.POST.get("evento_id")
+
+            evento = get_object_or_404(Evento, pk=evento_id)
+
+            total = ParticipanteMapa.objects.filter(evento=evento).count()
+
+            with transaction.atomic():
+                ParticipanteMapa.objects.filter(evento=evento).delete()
+
+                evento.delete()
+
+            messages.success(
+                request,
+                f"Evento eliminado. También se eliminaron "
+                f"{total} registros asociados.",
+            )
+
+            return redirect("MapaConfiguracion")
+
+        messages.error(request, "Acción no válida.")
+
+        return redirect("MapaConfiguracion")

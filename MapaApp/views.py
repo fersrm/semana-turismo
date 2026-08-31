@@ -12,7 +12,7 @@ from django.views.generic import FormView, TemplateView, View
 from adapters.excel_adapter import ExcelAdapter
 
 from .forms import MapaForm
-from .models import Evento, ParticipanteMapa
+from .models import Evento, ParticipanteMapa, ConfiguracionMapa
 
 
 class MapaFormView(LoginRequiredMixin, FormView):
@@ -123,6 +123,8 @@ class MapaDatosView(LoginRequiredMixin, View):
             )
         ]
 
+        configuracion, _ = ConfiguracionMapa.objects.get_or_create(pk=1)
+
         return JsonResponse(
             {
                 "evento": {
@@ -131,6 +133,7 @@ class MapaDatosView(LoginRequiredMixin, View):
                 },
                 "config": {
                     "mostrar_desglose_por_tipo": (evento.mostrar_desglose_por_tipo),
+                    "escala_mapa": configuracion.escala_mapa,
                 },
                 "resumen": list(resumen_dict.values()),
                 "detalle": detalle,

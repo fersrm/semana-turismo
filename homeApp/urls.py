@@ -1,6 +1,11 @@
 from django.urls import path
-from homeApp import views
+from .views import HomeView, MapaConfiguracionView
 
 urlpatterns = [
-    path("", views.HomeView.as_view(), name="Home"),
+    path("", HomeView.as_view(), name="Home"),
+    path(
+        "configuracion/mapa/",
+        MapaConfiguracionView.as_view(),
+        name="MapaConfiguracion",
+    ),
 ]

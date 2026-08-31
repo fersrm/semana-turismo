@@ -351,12 +351,26 @@ const comunaCenters = {
   RANQUIL: { x: 96, y: 245 },
 };
 
-function getHeatColor(value, min, max) {
+function getHeatColor(value, min, max, escala = "LOG") {
+  if (value <= 0) {
+    return "#b4babd";
+  }
+
   if (max === min) {
     return "#4aa3df";
   }
 
-  const ratio = (value - min) / (max - min);
+  let ratio;
+
+  if (escala === "LINEAL") {
+    ratio = (value - min) / (max - min);
+  } else {
+    // Recomendado si Chillán tiene una participación muy superior.
+    const minimoLog = Math.log1p(min);
+    const maximoLog = Math.log1p(max);
+
+    ratio = (Math.log1p(value) - minimoLog) / (maximoLog - minimoLog);
+  }
 
   if (ratio <= 0.1) return "#8fd3f2";
   if (ratio <= 0.2) return "#6fc3ec";
@@ -388,6 +402,8 @@ function paintHeatMap(data) {
     };
   });
 
+  const escala = data.config?.escala_mapa || "LOG";
+
   const allPaths = svg.querySelectorAll("path[data-name]");
 
   allPaths.forEach((path) => {
@@ -395,7 +411,8 @@ function paintHeatMap(data) {
     const item = resumenMap[comuna];
     const total = item ? item.TOTAL : 0;
 
-    path.style.fill = total > 0 ? getHeatColor(total, min, max) : "#b4babd";
+    path.style.fill =
+      total > 0 ? getHeatColor(total, min, max, escala) : "#b4babd";
   });
 }
 
