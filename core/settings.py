@@ -271,7 +271,7 @@ AXES_FAILURE_LIMIT = 3
 AXES_COOLOFF_TIME = delta
 AXES_RESET_ON_SUCCESS = True  # restablecerá el número de inicios de sesión fallidos
 AXES_ENABLE_ACCESS_FAILURE_LOG = True
-AXES_LOCK_OUT_AT_FAILURE = True  # bloquea al usuario
+AXES_LOCK_OUT_AT_FAILURE = False  # bloquea al usuario
 
 # ------------------------------------------
 if not DEBUG:
