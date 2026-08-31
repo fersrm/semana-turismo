@@ -204,12 +204,12 @@ ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # none, optional, mandatory
+ACCOUNT_EMAIL_VERIFICATION = "none"  # none, optional, mandatory
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 
 ACCOUNT_LOGOUT_ON_GET = True
 
-SESSION_COOKIE_AGE = 1800  # 20 minutes in seconds
+SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
 
 LOGIN_URL = "account_login"
 
