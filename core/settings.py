@@ -1,17 +1,25 @@
 from pathlib import Path
-import os
-import environ
-import datetime as dt
 
-env = environ.Env()
-environ.Env.read_env()
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+import datetime as dt
+import environ
+import os
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env(
+    DEBUG=(bool, False),
+)
+
+# Busca siempre el archivo .env en la raíz del proyecto.
+ENV_FILE = BASE_DIR / ".env"
+
+environ.Env.read_env(ENV_FILE)
 
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
