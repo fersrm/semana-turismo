@@ -216,7 +216,6 @@ form input[type="file"]::file-selector-button:hover {
 
   &.map--vista {
     position: relative;
-    min-height: 650px;
 
     .total-general {
       position: absolute;
@@ -680,7 +679,7 @@ form input[type="file"]::file-selector-button:hover {
 }
 
 .hidden_element {
-  display: none;
+  display: none !important;
 }
 
 .total_tabla {

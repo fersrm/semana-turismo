@@ -76,7 +76,6 @@
         <!-- SVG ------------------- -->
         {% include "pages/mapa/secciones/svg_mapa.html" %} 
         
-        
         <!-- Lista ------------------- -->
         {% include "pages/mapa/secciones/map_lista.html" %}
         
@@ -101,15 +100,11 @@
 </div>
 
 <!-- --------------------------------------------- -->
-<div
-    class="mensaje-error
-    {% if request.resolver_match.url_name == 'MapaVista' %}
-        bg-white text-gray-900
+<div class="mensaje-error  {% if request.resolver_match.url_name == 'MapaVista' %}
+        text-gray-900
     {% else %}
         text-white
-    {% endif %}
-    "
->
+    {% endif %}">
     <div class="container_img_error">
         <img
             src="{% static 'img/error.png' %}"
@@ -117,7 +112,7 @@
         />
     </div>
 
-    <h2>Visualización no disponible</h2>
+    <strong>Visualización no disponible</strong>
 
     <p>
         Este panel está optimizado para pantallas de escritorio.<br>

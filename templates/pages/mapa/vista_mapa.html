@@ -10,25 +10,44 @@
 {% endblock extra_css %}
 
 {% block content %}
-  <div class="relative flex min-h-[95px] items-center justify-between bg-white px-4 py-3 sm:px-7">
-      
-      <div class="flex w-[75px] items-center sm:w-[150px]">
-          <img
-              src="{% static 'img/INACAP.jpg' %}"
-              alt="INACAP"
-              class="w-[70px] object-contain sm:w-[120px]"
-          >
-      </div>
+  <div class="relative flex min-h-[95px] flex-col bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-7">
 
-      <h1 class="absolute left-1/2 w-[48%] -translate-x-1/2 text-center text-sm font-bold text-zinc-700 sm:w-auto sm:whitespace-nowrap sm:text-2xl">
+      <!-- Título móvil -->
+      <h1 class="mb-3 text-center text-sm font-bold text-zinc-700 sm:absolute sm:left-1/2 sm:mb-0 sm:w-auto sm:-translate-x-1/2 sm:whitespace-nowrap sm:text-2xl">
           MAPA TERRITORIAL DE ÑUBLE
       </h1>
 
-      <img
-          src="{% static 'img/vcm.png' %}"
-          alt="Cerrar sesión"
-          class="w-[60px] object-contain sm:w-[90px]"
-      >
+      <!-- Logos -->
+      <div class="flex w-full items-center justify-between sm:w-full">
+
+          <!-- INACAP -->
+          <div class="flex w-[75px] items-center sm:w-[150px]">
+              <img
+                  src="{% static 'img/INACAP.jpg' %}"
+                  alt="INACAP"
+                  class="w-[70px] object-contain sm:w-[120px]"
+              >
+          </div>
+
+          <!-- Logos derecha -->
+          <div class="flex items-center gap-3 sm:gap-5">
+
+              <img
+                  src="{% static 'img/LogoNubleTur.png' %}"
+                  alt="Ñuble Turismo"
+                  class="w-[60px] object-contain sm:w-[90px]"
+              >
+
+              <img
+                  src="{% static 'img/vcm.png' %}"
+                  alt="VCM"
+                  class="w-[60px] object-contain sm:w-[90px]"
+              >
+
+          </div>
+
+      </div>
+
   </div>
 
   <div class="pt-6">
