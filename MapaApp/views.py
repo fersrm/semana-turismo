@@ -56,8 +56,7 @@ class MapaFormView(LoginRequiredMixin, FormView):
         return redirect("MapaPanel")
 
 
-class MapaDatosView(LoginRequiredMixin, View):
-    login_url = reverse_lazy("account_login")
+class MapaDatosView(View):
 
     def get(self, request, *args, **kwargs):
         evento_id = request.GET.get("evento")
@@ -70,7 +69,6 @@ class MapaDatosView(LoginRequiredMixin, View):
 
         evento = get_object_or_404(Evento, pk=evento_id)
 
-        # "todo" permite visualizar un evento antiguo completo.
         dias = request.GET.get("dias", "todo")
 
         queryset = ParticipanteMapa.objects.filter(evento=evento)
@@ -85,6 +83,7 @@ class MapaDatosView(LoginRequiredMixin, View):
                 dias = 7
 
             fecha_inicio = timezone.localdate() - timedelta(days=dias - 1)
+
             queryset = queryset.filter(fecha__gte=fecha_inicio)
 
         resumen_qs = queryset.values(
@@ -168,7 +167,7 @@ class MapaTemplaView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class MapaTempla2View(LoginRequiredMixin, TemplateView):
+class MapaTempla2View(TemplateView):
     template_name = "pages/mapa/vista_mapa.html"
     login_url = reverse_lazy("account_login")
 

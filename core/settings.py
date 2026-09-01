@@ -91,7 +91,7 @@ THIRD_APPS = [
     "allauth.mfa",
     "crispy_forms",
     "crispy_tailwind",
-    "preventconcurrentlogins",
+    # "preventconcurrentlogins",
     # "axes",  # Desactivado temporalmente
 ]
 
@@ -119,7 +119,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    "preventconcurrentlogins.middleware.PreventConcurrentLoginsMiddleware",
+    # "preventconcurrentlogins.middleware.PreventConcurrentLoginsMiddleware",
     # "axes.middleware.AxesMiddleware",  # Desactivado temporalmente
     "homeApp.middleware.UpdateLastActivityMiddleware",
 ]
@@ -170,7 +170,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
         "OPTIONS": {
-            "timeout": 20,
+            "timeout": 5,
         },
     }
 }
@@ -257,7 +257,7 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 
-SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
+SESSION_COOKIE_AGE = 7200
 
 
 # MFA
