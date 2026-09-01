@@ -1,8 +1,8 @@
 from pathlib import Path
-
 import datetime as dt
-import environ
 import os
+
+import environ
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,7 +13,6 @@ env = environ.Env(
 
 # Busca siempre el archivo .env en la raíz del proyecto.
 ENV_FILE = BASE_DIR / ".env"
-
 environ.Env.read_env(ENV_FILE)
 
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
@@ -169,6 +168,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            "timeout": 20,
+        },
     }
 }
 
@@ -202,7 +204,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = "es-us"
+LANGUAGE_CODE = "es-cl"
 
 TIME_ZONE = "America/Santiago"
 
@@ -230,6 +232,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Correo:
+# Se mantiene en consola porque aún no hay proveedor SMTP.
+# No afecta el registro ya que ACCOUNT_EMAIL_VERIFICATION = "none".
 # if DEBUG:
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # else: EMAIL_BACKEND = [Configuración de correo]
@@ -238,22 +243,24 @@ ACCOUNT_ALLOW_REGISTRATION = True
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 LOGIN_REDIRECT_URL = "Home"
+LOGIN_URL = "account_login"
 
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 
+# No se solicita confirmación porque no existe sistema de correos.
 ACCOUNT_EMAIL_VERIFICATION = "none"  # none, optional, mandatory
-ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
 
-LOGIN_URL = "account_login"
 
-# -----------------------------------------------
+
+# MFA
 
 MFA_RECOVERY_CODE_COUNT = 10
 # El número de códigos de recuperación.
@@ -264,7 +271,7 @@ MFA_TOTP_PERIOD = 30
 MFA_TOTP_DIGITS = 6
 # The number of digits for TOTP codes.
 
-# -------------------------------------------------
+# django-axes: protección frente a intentos de acceso repetidos
 
 delta = dt.timedelta(minutes=5)
 
