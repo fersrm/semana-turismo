@@ -1,5 +1,6 @@
 from pathlib import Path
-import datetime as dt
+
+# import datetime as dt
 import os
 
 import environ
@@ -91,7 +92,7 @@ THIRD_APPS = [
     "crispy_forms",
     "crispy_tailwind",
     "preventconcurrentlogins",
-    "axes",
+    # "axes",  # Desactivado temporalmente
 ]
 
 
@@ -119,7 +120,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "preventconcurrentlogins.middleware.PreventConcurrentLoginsMiddleware",
-    "axes.middleware.AxesMiddleware",
+    # "axes.middleware.AxesMiddleware",  # Desactivado temporalmente
     "homeApp.middleware.UpdateLastActivityMiddleware",
 ]
 
@@ -143,7 +144,7 @@ TEMPLATES = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    "axes.backends.AxesStandaloneBackend",
+    # "axes.backends.AxesStandaloneBackend",  # Desactivado temporalmente
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
@@ -259,7 +260,6 @@ ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
 
 
-
 # MFA
 
 MFA_RECOVERY_CODE_COUNT = 10
@@ -273,13 +273,13 @@ MFA_TOTP_DIGITS = 6
 
 # django-axes: protección frente a intentos de acceso repetidos
 
-delta = dt.timedelta(minutes=5)
+# delta = dt.timedelta(minutes=5)
 
-AXES_FAILURE_LIMIT = 3
-AXES_COOLOFF_TIME = delta
-AXES_RESET_ON_SUCCESS = True  # restablecerá el número de inicios de sesión fallidos
-AXES_ENABLE_ACCESS_FAILURE_LOG = True
-AXES_LOCK_OUT_AT_FAILURE = False  # bloquea al usuario
+# AXES_FAILURE_LIMIT = 3
+# AXES_COOLOFF_TIME = delta
+# AXES_RESET_ON_SUCCESS = True  # restablecerá el número de inicios de sesión fallidos
+# AXES_ENABLE_ACCESS_FAILURE_LOG = True
+# AXES_LOCK_OUT_AT_FAILURE = True  # bloquea al usuario
 
 # ------------------------------------------
 if not DEBUG:
