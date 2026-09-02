@@ -24,7 +24,7 @@ function obtenerDiasSeleccionados() {
     return filtroDias.value;
   }
 
-  return "todo";
+  return "1";
 }
 
 function mostrarDesglose() {
