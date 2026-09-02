@@ -3,15 +3,7 @@ from .models import Evento
 
 
 class MapaForm(forms.Form):
-    evento = forms.ModelChoiceField(
-        queryset=Evento.objects.all(),
-        empty_label="Seleccione un evento",
-        label="Evento",
-    )
-
-    document = forms.FileField(
-        label="Archivo Excel",
-    )
+    document = forms.FileField(label="Archivo Excel")
 
     def clean_document(self):
         document = self.cleaned_data["document"]
@@ -19,11 +11,11 @@ class MapaForm(forms.Form):
         if not document.name.lower().endswith(".xlsx"):
             raise forms.ValidationError("El archivo debe ser de formato Excel (.xlsx).")
 
-        max_size = 50 * 1024 * 1024  # 50 MB
+        max_size = 50 * 1024 * 1024
 
         if document.size > max_size:
             raise forms.ValidationError(
-                "El tamaño del archivo no puede ser mayor a 50 MB."
+                "El tamaño del archivo no puede superar los 50 MB."
             )
 
         return document

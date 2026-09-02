@@ -526,10 +526,6 @@ form input[type="file"]::file-selector-button:hover {
   font-size: 15px;
 }
 
-.leyenda-tipos strong {
-  color: #ffffff;
-}
-
 /* ----- DISEÑO MÓVILES ------------- */
 
 @media (width < 900px) {

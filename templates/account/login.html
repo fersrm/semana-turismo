@@ -24,12 +24,19 @@
               {{ form|crispy }}
               {{ redirect_field }}
               {% endslot %}
-            {% slot actions %}
-              {% include "components/btn/button.html" with button_text="Iniciar sesión" button_class="prominent login" %}
-            {% endslot %}
+              {% slot actions %}
+                {% include "components/btn/button.html" with button_text="Iniciar sesión" button_class="prominent login" %}
+                <div class="mt-4 text-center">
+                  <a href="{% url 'account_reset_password' %}"
+                    class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    ¿Olvidaste tu contraseña?
+                  </a>
+                </div>
+              {% endslot %}
           {% endelement %}
         {% endif %}
 
+        
         {% if LOGIN_BY_CODE_ENABLED %}
           {% element hr %}
           {% endelement %}

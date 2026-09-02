@@ -5,9 +5,11 @@ const svg = document.getElementById("mapa_nuble");
 const selectedSvgContainer = document.getElementById("selected-svg-container");
 const button = document.getElementById("reload");
 const summaryLayer = document.getElementById("summary-layer");
-const filtroDias = document.getElementById("filtro-dias");
 
-const eventoId = mapId.dataset.eventoId;
+const filtroDias = document.getElementById("filtro-dias");
+const filtroEvento = document.getElementById("filtro-evento");
+
+const eventoId = mapId?.dataset.eventoId;
 
 let datosActuales = {
   resumen: [],
@@ -530,8 +532,64 @@ async function actualizarMapa() {
 document.addEventListener("DOMContentLoaded", async () => {
   await actualizarMapa();
 
+  // =====================================================
+  // CAMBIO DE EVENTO
+  // =====================================================
+  if (filtroEvento) {
+    filtroEvento.addEventListener("change", () => {
+      const option = filtroEvento.options[filtroEvento.selectedIndex];
+
+      const nuevoEventoId = filtroEvento.value;
+
+      const esEventoActivo = option.dataset.activo === "1";
+
+      const params = new URLSearchParams(window.location.search);
+
+      params.set("evento", nuevoEventoId);
+
+      /*
+       * Si selecciona el evento activo:
+       * mostramos últimos 7 días.
+       *
+       * Si selecciona un evento histórico:
+       * mostramos todo el evento.
+       */
+      if (esEventoActivo) {
+        params.set("dias", "7");
+      } else {
+        params.set("dias", "todo");
+      }
+
+      // Recargamos porque Django debe cambiar
+      // el evento_activo y data-evento-id.
+      window.location.search = params.toString();
+    });
+  }
+
+  // =====================================================
+  // CAMBIO DE PERÍODO
+  // =====================================================
   if (filtroDias) {
     filtroDias.addEventListener("change", async () => {
+      const params = new URLSearchParams(window.location.search);
+
+      params.set("dias", filtroDias.value);
+
+      if (eventoId) {
+        params.set("evento", eventoId);
+      }
+
+      /*
+       * Cambiamos la URL sin recargar la página,
+       * porque para los días basta volver a consultar
+       * /mapa/datos/.
+       */
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}?${params.toString()}`,
+      );
+
       await actualizarMapa();
     });
   }

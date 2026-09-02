@@ -15,7 +15,15 @@ from .forms import MapaForm
 from .models import Evento, ParticipanteMapa, ConfiguracionMapa
 
 
+def obtener_evento_activo():
+    return Evento.objects.order_by(
+        "-fecha_evento",
+        "-id",
+    ).first()
+
+
 class MapaFormView(LoginRequiredMixin, FormView):
+
     form_class = MapaForm
     template_name = "pages/mapa/components/carga_excel.html"
     success_url = reverse_lazy("MapaPanel")
@@ -24,34 +32,49 @@ class MapaFormView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["evento_predeterminado"] = Evento.objects.order_by("-id").first()
+        context["evento_predeterminado"] = obtener_evento_activo()
 
         return context
 
     def form_valid(self, form):
         document = form.cleaned_data["document"]
-        evento = form.cleaned_data["evento"]
+
+        evento = obtener_evento_activo()
+
+        if not evento:
+            messages.error(self.request, "Debe crear un evento antes de cargar datos.")
+            return redirect("MapaPanel")
 
         try:
             adapter = ExcelAdapter()
-            total_registros = adapter.process_excel_file(document, evento)
+
+            total_registros = adapter.process_excel_file(
+                document,
+                evento,
+            )
 
             messages.success(
                 self.request,
-                f"Archivo cargado con éxito. Se guardaron "
-                f"{total_registros} registros en «{evento.nombre}».",
+                f"Archivo cargado con éxito. "
+                f"Se guardaron {total_registros} registros "
+                f"en «{evento.nombre}».",
             )
 
         except Exception as error:
-            form.add_error(None, f"Error al procesar el archivo: {error}")
-            return self.form_invalid(form)
+            messages.error(self.request, f"Error al procesar el archivo: {error}")
+
+            return redirect("MapaPanel")
 
         return super().form_valid(form)
 
     def form_invalid(self, form):
+
         for _, errors in form.errors.items():
             for error in errors:
-                messages.error(self.request, error)
+                messages.error(
+                    self.request,
+                    error,
+                )
 
         return redirect("MapaPanel")
 
@@ -113,7 +136,7 @@ class MapaDatosView(View):
             {
                 "PART_TCOMUNA": item["comuna"],
                 "TIPO": item["tipo_participante"],
-                "FECHA": item["fecha"].isoformat(),
+                "FECHA": (item["fecha"].isoformat() if item["fecha"] else None),
             }
             for item in queryset.values(
                 "comuna",
@@ -141,6 +164,7 @@ class MapaDatosView(View):
 
 
 class MapaTemplaView(LoginRequiredMixin, TemplateView):
+
     template_name = "pages/mapa/carga_mapa.html"
     login_url = reverse_lazy("account_login")
 
@@ -152,24 +176,37 @@ class MapaTemplaView(LoginRequiredMixin, TemplateView):
             "-id",
         )
 
+        evento_predeterminado = eventos.first()
+
         evento_id = self.request.GET.get("evento")
 
+        evento_visualizado = None
+
         if evento_id:
-            evento_activo = eventos.filter(pk=evento_id).first()
-        else:
-            # Usa automáticamente el evento más reciente.
-            evento_activo = eventos.first()
+            evento_visualizado = eventos.filter(pk=evento_id).first()
+
+        if not evento_visualizado:
+            evento_visualizado = evento_predeterminado
 
         context["eventos"] = eventos
-        context["evento_activo"] = evento_activo
-        context["dias_filtro"] = self.request.GET.get("dias", "7")
+
+        # Evento oficialmente activo
+        context["evento_predeterminado"] = evento_predeterminado
+
+        # Evento que estamos mirando
+        context["evento_activo"] = evento_visualizado
+
+        context["dias_filtro"] = self.request.GET.get(
+            "dias",
+            "7",
+        )
 
         return context
 
 
 class MapaTempla2View(TemplateView):
+
     template_name = "pages/mapa/vista_mapa.html"
-    login_url = reverse_lazy("account_login")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -179,16 +216,17 @@ class MapaTempla2View(TemplateView):
             "-id",
         )
 
-        evento_id = self.request.GET.get("evento")
+        evento_activo = eventos.first()
 
-        if evento_id:
-            evento_activo = eventos.filter(pk=evento_id).first()
-        else:
-            evento_activo = eventos.first()
+        configuracion, _ = ConfiguracionMapa.objects.get_or_create(pk=1)
+
+        context["logo_mapa"] = configuracion.logo_activo
 
         context["eventos"] = eventos
+
         context["evento_activo"] = evento_activo
-        context["dias_filtro"] = self.request.GET.get("dias", "7")
+
+        context["dias_filtro"] = "7"
 
         return context
 

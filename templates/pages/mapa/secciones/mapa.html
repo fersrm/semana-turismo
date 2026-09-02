@@ -53,8 +53,7 @@
 
                   
               </div>
-            
-              {% if evento_activo and evento_activo.mostrar_desglose_por_tipo %}
+              
               <!-- LEYENDA TIPOS -->
               <div
                   class="leyenda-tipos
@@ -65,10 +64,13 @@
                   {% endif %}
                   "
               >
-                  <span>E = Emprendedores</span>
-                  <span>A = Asistentes</span>
+                {% if evento_activo and evento_activo.mostrar_desglose_por_tipo %}
+                      <strong>E = Emprendedores</strong>
+                      <strong>A = Asistentes</strong>
+                {% else %}
+                      <strong>A = Asistentes</strong>
+                {% endif %}
               </div>
-          {% endif %}
 
           </div>
         </div>

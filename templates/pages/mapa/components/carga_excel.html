@@ -14,13 +14,7 @@
     {% csrf_token %}
 
     {% if evento_predeterminado %}
-        <input
-            type="hidden"
-            name="evento"
-            value="{{ evento_predeterminado.id }}"
-        >
-
-        <p class="mb-3 text-center text-xs text-emerald-400">
+        <p class="mb-3 text-center text-xs text-emerald-500">
             Evento actual: {{ evento_predeterminado.nombre }}
         </p>
     {% else %}

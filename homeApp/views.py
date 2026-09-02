@@ -16,9 +16,14 @@ from MapaApp.models import (
     ConfiguracionMapa,
     Evento,
     ParticipanteMapa,
+    LogoMapa,
 )
 
-from .forms import ConfiguracionMapaForm, EventoForm
+from .forms import (
+    ConfiguracionMapaForm,
+    EventoForm,
+    LogoMapaForm,
+)
 
 # Create your views here.
 
@@ -85,6 +90,7 @@ class MapaConfiguracionView(LoginRequiredMixin, TemplateView):
         self,
         configuracion_form=None,
         evento_form=None,
+        logo_form=None,
         **kwargs,
     ):
         context = super().get_context_data(**kwargs)
@@ -95,11 +101,19 @@ class MapaConfiguracionView(LoginRequiredMixin, TemplateView):
             instance=configuracion
         )
 
-        context["evento_form"] = evento_form or EventoForm()
-
-        context["eventos"] = Evento.objects.annotate(
+        eventos = Evento.objects.annotate(
             total_participantes=Count("participantes")
-        ).order_by("-id")
+        ).order_by(
+            "-fecha_evento",
+            "-id",
+        )
+
+        context["evento_form"] = evento_form or EventoForm()
+        context["evento_activo"] = eventos.first()
+        context["eventos"] = eventos
+        context["logo_form"] = logo_form or LogoMapaForm()
+        context["logos"] = LogoMapa.objects.all()
+        context["logo_activo"] = configuracion.logo_activo
 
         return context
 
@@ -159,6 +173,77 @@ class MapaConfiguracionView(LoginRequiredMixin, TemplateView):
                 request,
                 f"Evento eliminado. También se eliminaron "
                 f"{total} registros asociados.",
+            )
+
+            return redirect("MapaConfiguracion")
+
+        if accion == "crear_logo":
+            form = LogoMapaForm(
+                request.POST,
+                request.FILES,
+            )
+
+            if form.is_valid():
+                logo = form.save()
+
+                configuracion = self.get_configuracion()
+
+                # Si es el primer logo, usarlo automáticamente.
+                if not configuracion.logo_activo:
+                    configuracion.logo_activo = logo
+                    configuracion.save(update_fields=["logo_activo"])
+
+                messages.success(
+                    request,
+                    f"Logo «{logo.nombre}» agregado correctamente.",
+                )
+
+                return redirect("MapaConfiguracion")
+
+            return self.render_to_response(self.get_context_data(logo_form=form))
+
+        if accion == "seleccionar_logo":
+            logo_id = request.POST.get("logo_id")
+
+            logo = get_object_or_404(
+                LogoMapa,
+                pk=logo_id,
+            )
+
+            configuracion = self.get_configuracion()
+
+            configuracion.logo_activo = logo
+
+            configuracion.save(update_fields=["logo_activo"])
+
+            messages.success(
+                request,
+                f"Ahora se está utilizando el logo «{logo.nombre}».",
+            )
+
+            return redirect("MapaConfiguracion")
+
+        if accion == "eliminar_logo":
+            logo_id = request.POST.get("logo_id")
+
+            logo = get_object_or_404(
+                LogoMapa,
+                pk=logo_id,
+            )
+
+            nombre = logo.nombre
+
+            configuracion = self.get_configuracion()
+
+            if configuracion.logo_activo_id == logo.id:
+                configuracion.logo_activo = None
+                configuracion.save(update_fields=["logo_activo"])
+
+            logo.delete()
+
+            messages.success(
+                request,
+                f"Logo «{nombre}» eliminado correctamente.",
             )
 
             return redirect("MapaConfiguracion")

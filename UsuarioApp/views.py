@@ -49,7 +49,7 @@ class UserListView(LoginRequiredMixin, ListView):
         return context
 
 
-class UserDeactivateView(LoginRequiredMixin, PermitsPositionMixin, View):
+class UserDeactivateView(PermitsPositionMixin, View):
     def post(self, request, pk, *args, **kwargs):
         user = User.objects.get(pk=pk)
 
@@ -68,7 +68,7 @@ class UserDeactivateView(LoginRequiredMixin, PermitsPositionMixin, View):
         return redirect("User")
 
 
-class UserActivateView(LoginRequiredMixin, PermitsPositionMixin, View):
+class UserActivateView(PermitsPositionMixin, View):
     def post(self, request, pk, *args, **kwargs):
         user = User.objects.get(pk=pk)
         user.is_active = True
@@ -78,7 +78,7 @@ class UserActivateView(LoginRequiredMixin, PermitsPositionMixin, View):
         return redirect("User")
 
 
-class UserCreateView(LoginRequiredMixin, PermitsPositionMixin, View):
+class UserCreateView(PermitsPositionMixin, View):
     template_name = "pages/usuarios/registro_usuario.html"
 
     def get(self, request, *args, **kwargs):
