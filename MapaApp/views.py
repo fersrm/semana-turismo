@@ -198,7 +198,7 @@ class MapaTemplaView(LoginRequiredMixin, TemplateView):
 
         context["dias_filtro"] = self.request.GET.get(
             "dias",
-            "7",
+            "todo",
         )
 
         return context
@@ -221,12 +221,11 @@ class MapaTempla2View(TemplateView):
         configuracion, _ = ConfiguracionMapa.objects.get_or_create(pk=1)
 
         context["logo_mapa"] = configuracion.logo_activo
-
         context["eventos"] = eventos
-
         context["evento_activo"] = evento_activo
 
-        context["dias_filtro"] = "7"
+        # Vista pública: mostrar todo el evento
+        context["dias_filtro"] = "todo"
 
         return context
 

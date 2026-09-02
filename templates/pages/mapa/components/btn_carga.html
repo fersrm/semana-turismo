@@ -205,6 +205,16 @@
                 "
             >
 
+
+                <option
+                    value="todo"
+                    {% if dias_filtro == "todo" %}
+                        selected
+                    {% endif %}
+                >
+                    Todo el evento
+                </option>
+                
                 <option
                     value="7"
                     {% if dias_filtro == "7" %}
@@ -221,15 +231,6 @@
                     {% endif %}
                 >
                     Solo hoy
-                </option>
-
-                <option
-                    value="todo"
-                    {% if dias_filtro == "todo" %}
-                        selected
-                    {% endif %}
-                >
-                    Todo el evento
                 </option>
 
             </select>
