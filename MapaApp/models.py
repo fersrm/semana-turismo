@@ -20,6 +20,10 @@ class Evento(models.Model):
         default=True,
         help_text="Si se desactiva, el mapa mostrará solo el total de asistentes.",
     )
+    mostrar_solo_dia = models.BooleanField(
+        default=False,
+        help_text=("Si se desactiva, el mapa mostrará todo el evento."),
+    )
 
     class Meta:
         ordering = ["-fecha_evento", "nombre"]

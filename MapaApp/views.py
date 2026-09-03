@@ -224,8 +224,13 @@ class MapaTempla2View(TemplateView):
         context["eventos"] = eventos
         context["evento_activo"] = evento_activo
 
-        # Vista pública: mostrar todo el evento
-        context["dias_filtro"] = "1"
+        # Vista pública:
+        # evento diario -> solo hoy
+        # evento acumulativo -> todo
+        if evento_activo and evento_activo.mostrar_solo_dia:
+            context["dias_filtro"] = "1"
+        else:
+            context["dias_filtro"] = "todo"
 
         return context
 

@@ -10,6 +10,7 @@ const filtroDias = document.getElementById("filtro-dias");
 const filtroEvento = document.getElementById("filtro-evento");
 
 const eventoId = mapId?.dataset.eventoId;
+const diasDefault = mapId?.dataset.diasDefault || "todo";
 
 let datosActuales = {
   resumen: [],
@@ -24,7 +25,7 @@ function obtenerDiasSeleccionados() {
     return filtroDias.value;
   }
 
-  return "1";
+  return diasDefault;
 }
 
 function mostrarDesglose() {

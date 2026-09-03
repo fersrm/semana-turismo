@@ -3,7 +3,7 @@
 <div class="container_mapa px-4 sm:px-7">
     <div class="container_contex">
 
-      <div class="map   {% if request.resolver_match.url_name == 'MapaVista' %} map--vista {% endif %}"  id="map" data-evento-id="{% if evento_activo %}{{ evento_activo.id }}{% endif %}">
+      <div class="map   {% if request.resolver_match.url_name == 'MapaVista' %} map--vista {% endif %}"  id="map" data-evento-id="{% if evento_activo %}{{ evento_activo.id }}{% endif %}" data-dias-default="{{ dias_filtro }}">
         <!-- TOTAL GENERAL ------------------- -->
         <div class="total-general">
           <div class="total-svg">

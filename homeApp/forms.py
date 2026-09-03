@@ -28,13 +28,24 @@ class ConfiguracionMapaForm(forms.ModelForm):
         }
 
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field
+
+from django import forms
+
+from MapaApp.models import Evento
+
+
 class EventoForm(forms.ModelForm):
+
     class Meta:
         model = Evento
+
         fields = [
             "nombre",
             "fecha_evento",
             "mostrar_desglose_por_tipo",
+            "mostrar_solo_dia",
         ]
 
         labels = {
@@ -43,19 +54,53 @@ class EventoForm(forms.ModelForm):
             "mostrar_desglose_por_tipo": (
                 "Mostrar emprendedores y asistentes por separado"
             ),
+            "mostrar_solo_dia": ("Mostrar solamente el día actual"),
         }
 
         widgets = {
             "nombre": forms.TextInput(
                 attrs={
-                    "class": "input-config",
                     "placeholder": "Ej.: Ñuble Inspira Acceso",
+                    "class": (
+                        "w-full rounded-md border border-gray-600 "
+                        "bg-gray-700 px-3 py-2 text-white "
+                        "placeholder-gray-400 "
+                        "focus:border-indigo-500 "
+                        "focus:outline-none "
+                        "focus:ring-2 "
+                        "focus:ring-indigo-500"
+                    ),
                 }
             ),
             "fecha_evento": forms.DateInput(
                 attrs={
-                    "class": "input-config",
                     "type": "date",
+                    "class": (
+                        "w-full rounded-md border border-gray-600 "
+                        "bg-gray-700 px-3 py-2 text-white "
+                        "focus:border-indigo-500 "
+                        "focus:outline-none "
+                        "focus:ring-2 "
+                        "focus:ring-indigo-500"
+                    ),
+                }
+            ),
+            "mostrar_desglose_por_tipo": forms.CheckboxInput(
+                attrs={
+                    "class": (
+                        "h-4 w-4 rounded border-gray-500 "
+                        "bg-gray-700 text-indigo-600 "
+                        "focus:ring-indigo-500"
+                    ),
+                }
+            ),
+            "mostrar_solo_dia": forms.CheckboxInput(
+                attrs={
+                    "class": (
+                        "h-4 w-4 rounded border-gray-500 "
+                        "bg-gray-700 text-indigo-600 "
+                        "focus:ring-indigo-500"
+                    ),
                 }
             ),
         }
